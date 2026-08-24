@@ -36,24 +36,21 @@ Containerized serving
 - MLflow Model Registry
 - Versioned model artifacts
 - Model tags and aliases (`candidate`, `champion`)
-- Inference contract tests
+- Inference contract validation
 - Containerized model serving
-- CI security/quality checks
+- CI quality gates
 - Guarded production promotion
 - Rollback by moving `champion` to a previous model version
 
-Current MLflow guidance uses model aliases and tags for flexible promotion workflows; fixed model stages are deprecated. citeturn422589search1turn422589search0
+Current MLflow guidance uses aliases and tags for flexible promotion workflows; fixed model stages are deprecated.
 
 ## Repository layout
 
 ```text
 app/                  inference service
-ml/                   training, validation and promotion code
+ml/                   training, validation, registry and promotion code
 tests/                unit and contract tests
-models/               local development artifacts only
-docker/               serving container
 .github/workflows/    CI/CD pipeline
-scripts/              operator commands
 ```
 
 ## Local training
@@ -63,8 +60,6 @@ python -m pip install -r requirements.txt
 python ml/train.py
 python ml/evaluate.py --model-path artifacts/model.joblib
 ```
-
-The CI pipeline uses the same training and evaluation gates before registry promotion.
 
 ## Production notes
 
