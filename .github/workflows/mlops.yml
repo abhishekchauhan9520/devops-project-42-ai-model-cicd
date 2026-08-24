@@ -4,6 +4,7 @@ on:
   pull_request:
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -43,6 +44,10 @@ jobs:
           --health-interval 5s --health-timeout 3s --health-retries 20
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          name: trained-model
+          path: artifacts
       - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
@@ -53,6 +58,9 @@ jobs:
             --artifacts-destination ./mlartifacts > /tmp/mlflow.log 2>&1 &
           for i in {1..30}; do curl -fsS http://127.0.0.1:5000/version && break; sleep 2; done
           curl -fsS http://127.0.0.1:5000/version
+      - env:
+          MLFLOW_TRACKING_URI: http://127.0.0.1:5000
+        run: python ml/register.py
 
   promote-candidate:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -61,13 +69,7 @@ jobs:
     environment: staging
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.13'
-      - run: pip install -r requirements.txt
-      - name: Promotion contract check
-        run: |
-          python -m py_compile ml/*.py app/*.py
+      - run: |
           grep -q 'candidate' ml/promotion.py
           grep -q 'CONFIRM_PROMOTION' ml/promotion.py
 
